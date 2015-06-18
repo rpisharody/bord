@@ -12,16 +12,6 @@
 
 """
 
-""" 
-    A static site generator should:
-    (1) Read Files
-    (2) Convert files (markdown etc.) to HTML
-    (3) Run the templating engine (Jinja2 ?)
-    (4) Write the output
-    (5) Deploy
-
-"""
-
 import os
 import io
 import re
@@ -29,16 +19,21 @@ import markdown
 import jinja2
 
 CWD = os.getcwd()
+OUTPUT_DIR = 'output'
+CONTENT_DIR = 'content'
 md = markdown.Markdown()
 
-try:
-    os.makedirs('output')
-except OSError as err:
-    print ('Error: ', err)
+CONTENT_DIR = os.path.join(CWD, CONTENT_DIR)
+OUTPUT_DIR = os.path.join(CWD, OUTPUT_DIR)
 
-for file in os.listdir('content'):
-    fullPath = os.path.join(CWD, 'content', file)
-    outputName = re.sub('\.md$', '.html', file)
-    outputPath = os.path.join(CWD, 'output', outputName)
-    md.convertFile(fullPath, outputPath)
+try:
+    os.makedirs(OUTPUT_DIR)
+except OSError as err:
+    print ('Error while creating', OUTPUT_DIR)
+    print ('[', err.errno, ']', err.filename, ':', err.strerror)
+
+for inputFile in os.listdir(CONTENT_DIR):
+    inputfile = os.path.join(CONTENT_DIR, inputfile)
+    outputFile = re.sub('\.md$', '.html', inputFile) 
+    md.convertFile(inputFile, outputFile)
     md.reset()
