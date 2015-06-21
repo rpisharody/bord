@@ -1,2 +1,6 @@
 output/
 content/
+.ropeproject/
+__pycache__/
+*.swp
+*.ini
