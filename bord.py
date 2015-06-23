@@ -15,6 +15,7 @@ import re
 import markdown
 from jinja2 import FileSystemLoader, Environment
 import configreader
+import server
 
 
 md = markdown.Markdown()
@@ -33,6 +34,13 @@ def get_cmdline_arguments():
         type=str,
         default="~/.bord.rc",
         help="Specify the config file to use"
+    )
+    parser.add_argument(
+        "-s", "--server",
+        nargs='?',
+        type=int,
+        const=8080,
+        help="Start a server at the specified port"
     )
     return parser.parse_args()
 
@@ -99,6 +107,9 @@ def main():
     html = markdown_to_html(bord_config['content_dir'])
     count = generate_output(html, bord_config['output_dir'])
     print ('Created', count, 'HTML files')
+    if (args.server):
+        print ('Serving at:', str(args.server))
+        server.start_server(bord_config['output_dir'], args.server)
 
 
 if __name__ == '__main__':
