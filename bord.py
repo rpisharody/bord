@@ -60,9 +60,7 @@ def create_html(directory, output_directory):
         post = os.path.join(directory, inputFile)
         output = re.sub('\.md$', '.html', inputFile)
         output = os.path.join(output_directory, output)
-        if ( os.path.exists(output) and (mtime(output) > mtime(post)) ):
-            pass
-        else:
+        if ( ( not os.path.exists(output) ) or (mtime(output) <= mtime(post)) ):
             try:
                 f = open(post, 'r', encoding='utf-8')
                 html = md.convert(f.read())
