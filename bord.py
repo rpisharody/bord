@@ -12,6 +12,7 @@
 import argparse
 import os
 import re
+import time
 import markdown
 from jinja2 import FileSystemLoader, Environment
 import configreader
@@ -19,6 +20,10 @@ import server
 
 
 md = markdown.Markdown()
+
+
+def mtime(file):
+    return time.ctime(os.path.getmtime(file))
 
 
 def get_cmdline_arguments():
@@ -45,27 +50,29 @@ def get_cmdline_arguments():
     return parser.parse_args()
 
 
-def markdown_to_html(directory):
+def create_html(directory, output_directory):
     """
-        Converts all markdown files in 'directory'
-        into plain HTML format.
-        :param directory Input Content Directory
-
-        Outputs a dictionary, key = filename, value = html content
+        Convert all markdown files in 'directory'
+        into plain HTML format, if the input was changed
     """
     html_dict = {}
     for inputFile in os.listdir(directory):
         post = os.path.join(directory, inputFile)
-        try:
-            f = open(post, 'r', encoding='utf-8')
-            html = md.convert(f.read())
-            html = render_template(html)
-            html_dict[inputFile] = html
-            md.reset()
-        except IOError as err:
-            print('Error while opening', post)
-            print('[', err.errno, ']', err.filename, ':', err.strerror)
-    return html_dict
+        output = re.sub('\.md$', '.html', inputFile)
+        output = os.path.join(output_directory, output)
+        if ( os.path.exists(output) and (mtime(output) > mtime(post)) ):
+            pass
+        else:
+            try:
+                f = open(post, 'r', encoding='utf-8')
+                html = md.convert(f.read())
+                html = render_template(html)
+                html_dict[inputFile] = html
+                md.reset()
+            except IOError as err:
+                print('Error while opening', post)
+                print('[', err.errno, ']', err.filename, ':', err.strerror)
+    return generate_output(html_dict, output_directory)
 
 
 def render_template(html):
@@ -104,8 +111,7 @@ def main():
     """
     args = get_cmdline_arguments()
     bord_config = configreader.ConfigReader(args.config)
-    html = markdown_to_html(bord_config['content_dir'])
-    count = generate_output(html, bord_config['output_dir'])
+    count = create_html(bord_config['content_dir'], bord_config['output_dir'])
     print ('Created', count, 'HTML files')
     if (args.server):
         print ('Serving at:', str(args.server))
